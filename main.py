@@ -350,8 +350,8 @@ def regersjaLiniowa(list):
 
 list = [[2, 1], [5, 2], [7, 3], [8, 3]]
 
-A = np.array([[1, 0, 1, 0, 1], [1, 1, 0, 1, 0], [0, 1, 1, 0, 0], [0, 1, 0, 1, 1], [1, 0, 0, 1, 1]])
-# A = np.array([[1, 0, 1], [1, 1, 0], [0, 1, 1]])
+A = np.array([[1, 0, 1], [1, 1, 0], [0, 1, 1]])
+A1 = np.array([[1, 0, 1, 0, 1], [1, 1, 0, 1, 0], [0, 1, 1, 0, 0], [0, 1, 0, 1, 1], [1, 0, 0, 1, 1]])
 def funkcajaRzA(list, Q):
     return np.dot(np.transpose(Q), list)
 
@@ -405,20 +405,22 @@ def czyMacierzGornoTrojkatna(list):
         return False
 
 
-def wlasnosciWlasne(list):
+def wartosciWlasne(list):
     buff_A = copy.deepcopy(list)
     while czyMacierzGornoTrojkatna(buff_A):
         buff_A = A_nastepna(buff_A)
     return np.diag(buff_A)
 
-print("Wartości własne A:")
-print(wlasnosciWlasne(A))
+A2 = np.array([[1, 2, 3],
+              [4, 1., 5],
+              [7, 5., 1]])
 
+print("Wartości własne A2:")
+print(wartosciWlasne(A2))
 
-def eliminacjaGaussJordan(list):
-    rozmiar = np.shape(list)[1]
+def gaussJordan(list):
+    rozmiar = np.shape(list)[0]
     wektor = []
-
     for i in range(rozmiar):
         if list[i][i] == 0.0:
             return "Wykryto zero!"
@@ -427,33 +429,44 @@ def eliminacjaGaussJordan(list):
             if i != j:
                 ratio = list[j][i] / list[i][i]
 
-                for k in range(rozmiar):
+                for k in range(rozmiar + 1):
                     list[j][k] = list[j][k] - ratio * list[i][k]
 
-    for i in range(rozmiar):
-        wektor.append(list[i][rozmiar-1] / list[i][i])
-
+    for x in range(rozmiar):
+        wektor.append(list[x][rozmiar] / list[x][x])
     return wektor
 
 
-def wektorWlasny(list, wartoscWlasna):
+def odejmoanieWarotsciWlasnej(list, wartoscWlasna):
     buff_list = copy.deepcopy(list)
     rozmiar = np.shape(list)[1]
     for i in range(rozmiar):
         for j in range(rozmiar):
             if i == j:
                 buff_list[i][j] = list[i][j] - wartoscWlasna
-    return eliminacjaGaussJordan(buff_list)
+    return buff_list
+
+
+def dodanieKolumnyZer(list, wartosciWlasne):
+    wynik = {}
+    rozmiar = np.shape(list)[1]
+    zera = np.zeros((rozmiar, 1))
+    x = 0
+    for i in wartosciWlasne:
+        wynik[x] = np.hstack((odejmoanieWarotsciWlasnej(list, i), zera))
+        x+=1
+    return wynik
+
 
 def wektoryWlasne(list):
-    wartosci = wlasnosciWlasne(list)
-    wektory_w = []
-    for i in wartosci:
-        wektory_w.append(wektorWlasny(list, i))
-    return wektory_w
+    macierze = dodanieKolumnyZer(list, wartosciWlasne(list))
+    wektory = []
+    for i in macierze:
+        macierze[i] = np.delete(macierze[i], len(macierze) - 1, 0)
+        wektory.append((np.round(gaussJordan(macierze[i]) + [-1.], 3) * -1).tolist())
+    return wektory
 
-print("Zwykła macierz:")
-print(A)
-print("Wektory wlasne:")
-print(wektoryWlasne(A))
+print("Wektory własne A2:")
+print(wektoryWlasne(A2))
+
 
