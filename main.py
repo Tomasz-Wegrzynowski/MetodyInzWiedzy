@@ -469,4 +469,42 @@ def wektoryWlasne(list):
 print("Wektory własne A2:")
 print(wektoryWlasne(A2))
 
+A3 = np.array([[1,1,1,0,1,0,0,0],
+               [1,1,1,0,-1,0,0,0],
+               [1,1,-1,0,0,1,0,0],
+               [1,1,-1,0,0,-1,0,0],
+               [1,-1,0,1,0,0,1,0],
+               [1,-1,0,1,0,0,-1,0],
+               [1,-1,0,-1,0,0,0,1],
+               [1,-1,0,-1,0,0,0,-1]])
 
+def czyOrtogonalnaMacierz(macierz):
+    macierz_buff = np.dot(np.transpose(macierz), macierz)
+    x = np.count_nonzero(macierz_buff - np.diag(np.diagonal(macierz_buff)))
+    if x == 0:
+        return True
+    else:
+        return False
+
+
+def ortonormalizacja(macierz):
+    macierz = np.transpose(macierz)
+    macierz_buff = []
+    for i in macierz:
+        dlugosc_wektora = math.sqrt(np.dot(i,i))
+        print(dlugosc_wektora)
+        macierz_buff.append(i/dlugosc_wektora)
+
+    macierz_wynik = np.dot(np.transpose(macierz_buff), macierz_buff)
+    return macierz_buff, macierz_wynik  # macierz_buff macierz ortonormalna macierz_wynik b* (b^-1)
+
+# print(czyOrtogonalnaMacierz(A3))
+
+wektorA =np.array([8,6,2,3,4,6,6,5])
+
+def Btr_przez_wektor_A(macierz ,wektorA):
+    return np.dot(macierz, wektorA)
+
+macierz_ortonormalna, jednostkowa = ortonormalizacja(A3)
+print(np.round(jednostkowa,3))
+print(np.round(Btr_przez_wektor_A(macierz_ortonormalna,wektorA), 3))
