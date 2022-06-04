@@ -350,7 +350,7 @@ def regersjaLiniowa(list):
 
 list = [[2, 1], [5, 2], [7, 3], [8, 3]]
 
-A = np.array([[1, 0, 1], [1, 1, 0], [0, 1, 1]])
+A = np.array([[1, 0, 2], [2, 1, 0], [0, 3, 1]])
 A1 = np.array([[1, 0, 1, 0, 1], [1, 1, 0, 1, 0], [0, 1, 1, 0, 0], [0, 1, 0, 1, 1], [1, 0, 0, 1, 1]])
 def funkcajaRzA(list, Q):
     return np.dot(np.transpose(Q), list)
@@ -377,7 +377,10 @@ def funkcajaQzA(list):
         U = numpy.append(U, [u], axis=0)
         U = np.transpose(U)
         dlugosc_u = math.sqrt(numpy.dot(u, u))
-        e = (1/dlugosc_u) * u
+        if dlugosc_u == 0:
+            e = u
+        else:
+            e = (1/dlugosc_u) * u
         Q = numpy.append(Q, [e], axis=0)
     return np.transpose(Q)
 
@@ -414,6 +417,9 @@ def wartosciWlasne(list):
 A2 = np.array([[1, 2, 3],
               [4, 1., 5],
               [7, 5., 1]])
+test = np.array([[5, 2, 4],
+              [2, 4, 0],
+              [4, 0, 4]])
 
 print("Wartości własne A2:")
 print(wartosciWlasne(A2))
@@ -458,8 +464,8 @@ def dodanieKolumnyZer(list, wartosciWlasne):
     return wynik
 
 
-def wektoryWlasne(list):
-    macierze = dodanieKolumnyZer(list, wartosciWlasne(list))
+def wektoryWlasne(list, watosci_wlasne):
+    macierze = dodanieKolumnyZer(list, watosci_wlasne)
     wektory = []
     for i in macierze:
         macierze[i] = np.delete(macierze[i], len(macierze) - 1, 0)
@@ -467,7 +473,7 @@ def wektoryWlasne(list):
     return wektory
 
 print("Wektory własne A2:")
-print(wektoryWlasne(A2))
+print(wektoryWlasne(A2, wartosciWlasne(A2)))
 
 A3 = np.array([[1,1,1,0,1,0,0,0],
                [1,1,1,0,-1,0,0,0],
@@ -505,6 +511,80 @@ wektorA =np.array([8,6,2,3,4,6,6,5])
 def Btr_przez_wektor_A(macierz ,wektorA):
     return np.dot(macierz, wektorA)
 
-macierz_ortonormalna, jednostkowa = ortonormalizacja(A3)
-print(np.round(jednostkowa,3))
-print(np.round(Btr_przez_wektor_A(macierz_ortonormalna,wektorA), 3))
+# macierz_ortonormalna, jednostkowa = ortonormalizacja(A3)
+# print(np.round(jednostkowa,3))
+# print("-------------------------------")
+# print(np.round(macierz_ortonormalna,2))
+# print("-------------------------------")
+# print(np.round(Btr_przez_wektor_A(macierz_ortonormalna,wektorA), 3))
+
+A4 = np.array([[1, 2,0],
+               [2, 0, 2]])
+
+
+def SVD(macierz):
+    row, col = np.shape(macierz)
+    if col >=row:
+        AtA = np.dot(np.transpose(macierz),macierz)
+        wartosci_wlanse = np.sort(np.round(np.linalg.eig(AtA)[0], col))[::-1]
+        wekrory_v_bezdlugosci = wektoryWlasne(AtA, wartosci_wlanse)
+        wektory_v = []
+        for i in range(0, col):
+            dlugosc = np.round(math.sqrt(np.dot(wekrory_v_bezdlugosci[i],wekrory_v_bezdlugosci[i])),3)
+            wektor = [x * 1/dlugosc for x in wekrory_v_bezdlugosci[i]]
+            wektory_v.append(wektor)
+        wektory_u = []
+        for j in range(0, row):
+            if wartosci_wlanse[j] == 0:
+                return "Nie da się obliczyć tym sposobem"
+            else:
+                wektor_u = np.dot(macierz,wektory_v[j]) * 1/math.sqrt(wartosci_wlanse[j])
+                wektory_u.append(wektor_u)
+
+        E = np.zeros((row, col))
+        for y in range(0, row):
+            E[y][y] = math.sqrt(wartosci_wlanse[y])
+
+    else:
+        AAt = np.dot(macierz, np.transpose(macierz))
+        wartosci_wlanse = np.sort(np.round(np.linalg.eig(AAt)[0], row))[::-1]
+        wekrory_u_bezdlugosci = wektoryWlasne(AAt, wartosci_wlanse)
+        wektory_u = []
+        for i in range(0, row):
+            dlugosc = np.round(math.sqrt(np.dot(wekrory_u_bezdlugosci[i],wekrory_u_bezdlugosci[i])),3)
+            wektor = [x * 1/dlugosc for x in wekrory_u_bezdlugosci[i]]
+            wektory_u.append(wektor)
+
+        wektory_v = []
+        for j in range(0, col):
+            if wartosci_wlanse[j] == 0:
+                return "Nie da się obliczyć tym sposobem"
+            else:
+                wektor_v = np.dot(np.transpose(macierz), wektory_u[j]) * 1 / math.sqrt(wartosci_wlanse[j])
+                wektory_v.append(wektor_v)
+
+        E = np.zeros((row, col))
+        for y in range(0, col):
+            E[y][y] = math.sqrt(wartosci_wlanse[y])
+        print(E)
+
+    Vt = np.zeros((col, col))
+    for x in range(0, col):
+        for k in range(0, col):
+            Vt[x][k] = wektory_v[x][k]
+
+    U = np.zeros((row, row))
+    for x in range(0, row):
+        for k in range(0, row):
+            U[x][k] = wektory_u[x][k]
+
+    U = np.transpose(U)
+    return U, E, Vt
+
+U, E, Vt = SVD(A4)
+print("Macierz U")
+print(U)
+print("Macierz Epsilon")
+print(E)
+print("Macierz Vt")
+print(Vt)
